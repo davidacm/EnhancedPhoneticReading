@@ -19,7 +19,7 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description" : _("""This add-on speaks the character description for the last read character after n miliseconds."""),
 	# version
-	"addon_version" : "0.2a1",
+	"addon_version" : "0.2a2",
 	# Author(s)
 	"addon_author" : u"David CM <dhf360@gmail.com>",
 	# URL for the add-on documentation support

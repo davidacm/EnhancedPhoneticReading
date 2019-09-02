@@ -5,7 +5,7 @@
 # Released under GPL 3
 #globalPlugins/delayedCharacterDescriptions.py
 
-import config, controlTypes, globalPluginHandler, gui, speech, textInfos, threading, wx
+import config, controlTypes, globalPluginHandler, gui, six, speech, textInfos, threading, wx
 characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
 
 confspec = {
@@ -33,12 +33,23 @@ origSpeakTextInfo = speech.speakTextInfo
 # alternate function to speakTextInfo.
 def speakTextInfo(*args, **kwargs):
 	global characterDescriptionTimer
+	info = args[0].copy()
 	tmp = origSpeakTextInfo(*args, **kwargs)
-	info = args[0]
 	if kwargs.get('unit', None) == textInfos.UNIT_CHARACTER and info.text.isalpha():
-		characterDescriptionTimer = threading.Timer(config.conf['delayedCharacterDescriptions']['delay'], speech.spellTextInfo, [info.copy()], {'useCharacterDescriptions': True})
+		characterDescriptionTimer = threading.Timer(config.conf['delayedCharacterDescriptions']['delay'], speakDescription, [info.text, info.getTextWithFields({})])
 		characterDescriptionTimer.start()
 	return tmp
+
+def speakDescription(text, fields):
+	if not config.conf['speech']['autoLanguageSwitching']:
+		speakSpelling(text, useCharacterDescriptions=True)
+		return
+	curLanguage=None
+	for field in fields:
+		if isinstance(field, six.string_types):
+			speakSpelling(field,curLanguage,useCharacterDescriptions=True)
+		elif isinstance(field,textInfos.FieldCommand) and field.command=="formatChange":
+			curLanguage=field.field.get('language')
 
 class DelayedCharactersPanel(gui.SettingsPanel):
 	# Translators: This is the label for the delayed character   descriptions settings category in NVDA Settings screen.
