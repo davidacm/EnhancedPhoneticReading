@@ -54,18 +54,18 @@ def speakDescription(text, fields):
 class DelayedCharactersPanel(gui.SettingsPanel):
 	# Translators: This is the label for the delayed character   descriptions settings category in NVDA Settings screen.
 	title = _("Delayed character descriptions")
-
 	def makeSettings(self, settingsSizer):
 		sHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 		# Translators: label for a checkbox option in the settings panel.
 		self.enabled = sHelper.addItem(wx.CheckBox(self, label=_("&Enable delayed descriptions for characters")))
 		self.enabled.SetValue(config.conf['delayedCharacterDescriptions']['enabled'])
-		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions"), wx.TextCtrl)
-		self.delay.SetValue(str(config.conf['delayedCharacterDescriptions']['delay']))
+		# Translators: label for a edit field option in the settings panel.
+		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), wx.TextCtrl)
+		self.delay.SetValue(str(int(config.conf['delayedCharacterDescriptions']['delay']*1000)))
 
 	def onSave(self):
 		config.conf['delayedCharacterDescriptions']['enabled'] = self.enabled.GetValue()
-		config.conf['delayedCharacterDescriptions']['delay'] = float(self.delay.GetValue())
+		config.conf['delayedCharacterDescriptions']['delay'] = float(self.delay.GetValue())/1000.0
 		if hasattr(config, "post_configProfileSwitch"): config.post_configProfileSwitch.notify()
 		else: config.configProfileSwitched.notify()
 
