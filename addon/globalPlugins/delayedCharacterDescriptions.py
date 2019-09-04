@@ -5,9 +5,10 @@
 # Released under GPL 3
 #globalPlugins/delayedCharacterDescriptions.py
 
-import config, controlTypes, globalPluginHandler, gui, six, speech, textInfos, threading, wx
-characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
+import config, controlTypes, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
+addonHandler.initTranslation()
 
+characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
 confspec = {
 	"enabled": "boolean(default=True)",
 	"delay": "float(default=1)"
@@ -21,7 +22,7 @@ def speak(*args, **kwargs):
 	origSpeak(*args, **kwargs)
 	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
 
-#saves the speakSpelling original  function. We need it to cancel the timer if another speech sequence is received. For some reason, this function does't call the replaced speak function so we replace it also.
+#saves the speakSpelling original  function. We need it to cancel the timer if another speech sequence is received.
 origSpeakSpelling= speech.speakSpelling
 # alternate function to speakSpelling.
 def speakSpelling(*args, **kwargs):
@@ -66,19 +67,16 @@ class DelayedCharactersPanel(gui.SettingsPanel):
 	def onSave(self):
 		config.conf['delayedCharacterDescriptions']['enabled'] = self.enabled.GetValue()
 		config.conf['delayedCharacterDescriptions']['delay'] = float(self.delay.GetValue())/1000.0
-		if hasattr(config, "post_configProfileSwitch"): config.post_configProfileSwitch.notify()
-		else: config.configProfileSwitched.notify()
-
+		config.post_configProfileSwitch.notify()
+		
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
 		self.handleConfigProfileSwitch()
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(DelayedCharactersPanel)
-		if hasattr(config, "post_configProfileSwitch"): config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
-		else: config.configProfileSwitched.register(self.handleConfigProfileSwitch)
-
-	def handleConfigProfileSwitch(self):
-		self.switch(config.conf['delayedCharacterDescriptions']['enabled'])
+		config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
+		
+	def handleConfigProfileSwitch(self): self.switch(config.conf['delayedCharacterDescriptions']['enabled'])
 
 	def switch(self, status):
 		if status:
@@ -93,3 +91,5 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminate(self):
 		super(GlobalPlugin, self).terminate()
 		self.switch(False)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(DelayedCharactersPanel)
+		config.post_configProfileSwitch.unregister(self.handleConfigProfileSwitch)
