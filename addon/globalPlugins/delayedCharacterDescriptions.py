@@ -5,7 +5,7 @@
 # Released under GPL 3
 #globalPlugins/delayedCharacterDescriptions.py
 
-import config, controlTypes, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
+import characterProcessing, config, controlTypes, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
 addonHandler.initTranslation()
 
 characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
@@ -28,29 +28,29 @@ origSpeakSpelling= speech.speakSpelling
 def speakSpelling(*args, **kwargs):
 	origSpeakSpelling(*args, **kwargs)
 	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
-
+lastRead = None
 #saves the original speakTextInfo function
 origSpeakTextInfo = speech.speakTextInfo
 # alternate function to speakTextInfo.
 def speakTextInfo(*args, **kwargs):
 	global characterDescriptionTimer
-	info = args[0].copy()
+	info = args[0]
 	tmp = origSpeakTextInfo(*args, **kwargs)
-	if kwargs.get('unit', None) == textInfos.UNIT_CHARACTER and info.text.isalpha():
+	if kwargs.get('unit') == textInfos.UNIT_CHARACTER:
 		characterDescriptionTimer = threading.Timer(config.conf['delayedCharacterDescriptions']['delay'], speakDescription, [info.text, info.getTextWithFields({})])
 		characterDescriptionTimer.start()
 	return tmp
 
 def speakDescription(text, fields):
-	if not config.conf['speech']['autoLanguageSwitching']:
-		speakSpelling(text, useCharacterDescriptions=True)
+	curLanguage=speech.getCurrentLanguage()
+	if not config.conf['speech']['autoLanguageSwitching'] and characterProcessing.getCharacterDescription(curLanguage, text.lower()):
+		speakSpelling(text, curLanguage, useCharacterDescriptions=True)
 		return
-	curLanguage=None
 	for field in fields:
-		if isinstance(field, six.string_types):
+		if isinstance(field, six.string_types) and characterProcessing.getCharacterDescription(curLanguage, field.lower()):
 			speakSpelling(field,curLanguage,useCharacterDescriptions=True)
 		elif isinstance(field,textInfos.FieldCommand) and field.command=="formatChange":
-			curLanguage=field.field.get('language')
+			curLanguage=field.field.get('language', curLanguage)
 
 class DelayedCharactersPanel(gui.SettingsPanel):
 	# Translators: This is the label for the delayed character   descriptions settings category in NVDA Settings screen.
@@ -61,8 +61,7 @@ class DelayedCharactersPanel(gui.SettingsPanel):
 		self.enabled = sHelper.addItem(wx.CheckBox(self, label=_("&Enable delayed descriptions for characters")))
 		self.enabled.SetValue(config.conf['delayedCharacterDescriptions']['enabled'])
 		# Translators: label for a edit field option in the settings panel.
-		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), wx.TextCtrl)
-		self.delay.SetValue(str(int(config.conf['delayedCharacterDescriptions']['delay']*1000)))
+		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=1, max=20000, initial=config.conf['delayedCharacterDescriptions']['delay']*1000)
 
 	def onSave(self):
 		config.conf['delayedCharacterDescriptions']['enabled'] = self.enabled.GetValue()

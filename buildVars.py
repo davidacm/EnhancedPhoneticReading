@@ -17,9 +17,9 @@ addon_info = {
 	"addon_summary" : _("Delayed character descriptions"),
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-	"addon_description" : _("""This add-on speaks the character description for the last read character after n miliseconds."""),
+	"addon_description" : _("""This add-on speaks the character description for the last read character after n miliseconds when the character was read by character review commands, E.G. left and right arrow keys, left, current or right character review commands, ETC."""),
 	# version
-	"addon_version" : "0.2a2",
+	"addon_version" : "0.3a1",
 	# Author(s)
 	"addon_author" : u"David CM <dhf360@gmail.com>",
 	# URL for the add-on documentation support
