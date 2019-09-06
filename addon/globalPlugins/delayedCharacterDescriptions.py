@@ -28,10 +28,16 @@ origSpeakSpelling= speech.speakSpelling
 def speakSpelling(*args, **kwargs):
 	origSpeakSpelling(*args, **kwargs)
 	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
-lastRead = None
+
+#saves the cancelSpeech original  function. We need it to cancel the timer if the user send a stop speech command.
+origCancelSpeech = speech.cancelSpeech
+def cancelSpeech():
+	origCancelSpeech()
+	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
+
 #saves the original speakTextInfo function
 origSpeakTextInfo = speech.speakTextInfo
-# alternate function to speakTextInfo.
+# alternate function to speakTextInfo. We determine here if a delayed description is needed base on textInfos.UNIT_CHARACTER.
 def speakTextInfo(*args, **kwargs):
 	global characterDescriptionTimer
 	info = args[0]
@@ -44,8 +50,7 @@ def speakTextInfo(*args, **kwargs):
 def speakDescription(text, fields):
 	curLanguage=speech.getCurrentLanguage()
 	if not config.conf['speech']['autoLanguageSwitching'] and characterProcessing.getCharacterDescription(curLanguage, text.lower()):
-		speakSpelling(text, curLanguage, useCharacterDescriptions=True)
-		return
+		return speakSpelling(text, curLanguage, useCharacterDescriptions=True)
 	for field in fields:
 		if isinstance(field, six.string_types) and characterProcessing.getCharacterDescription(curLanguage, field.lower()):
 			speakSpelling(field,curLanguage,useCharacterDescriptions=True)
@@ -55,37 +60,42 @@ def speakDescription(text, fields):
 class DelayedCharactersPanel(gui.SettingsPanel):
 	# Translators: This is the label for the delayed character   descriptions settings category in NVDA Settings screen.
 	title = _("Delayed character descriptions")
+
 	def makeSettings(self, settingsSizer):
 		sHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 		# Translators: label for a checkbox option in the settings panel.
 		self.enabled = sHelper.addItem(wx.CheckBox(self, label=_("&Enable delayed descriptions for characters")))
 		self.enabled.SetValue(config.conf['delayedCharacterDescriptions']['enabled'])
 		# Translators: label for a edit field option in the settings panel.
-		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=1, max=20000, initial=config.conf['delayedCharacterDescriptions']['delay']*1000)
+		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=200, max=5000, initial=config.conf['delayedCharacterDescriptions']['delay']*1000)
 
 	def onSave(self):
 		config.conf['delayedCharacterDescriptions']['enabled'] = self.enabled.GetValue()
 		config.conf['delayedCharacterDescriptions']['delay'] = float(self.delay.GetValue())/1000.0
 		config.post_configProfileSwitch.notify()
-		
+
+
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
 		self.handleConfigProfileSwitch()
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(DelayedCharactersPanel)
 		config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
-		
-	def handleConfigProfileSwitch(self): self.switch(config.conf['delayedCharacterDescriptions']['enabled'])
+
+	def handleConfigProfileSwitch(self):
+		self.switch(config.conf['delayedCharacterDescriptions']['enabled'])
 
 	def switch(self, status):
 		if status:
 			speech.speakTextInfo = speakTextInfo
 			speech.speak = speak
 			speech.speakSpelling = speakSpelling
+			speech.cancelSpeech = cancelSpeech
 		else:
 			speech.speakTextInfo = origSpeakTextInfo
 			speech.speak = origSpeak
 			speech.speakSpelling = origSpeakSpelling
+			speech.cancelSpeech = origCancelSpeech
 
 	def terminate(self):
 		super(GlobalPlugin, self).terminate()
