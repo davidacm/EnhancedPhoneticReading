@@ -24,3 +24,6 @@ This package is distributed under the terms of the GNU General Public License, v
 
 * Enable delayed descriptions for characters: this check enables or disables the add-on.
 * Delay to announce  character descriptions (in ms): the time the add-on waits to speak the description for the read character. You can't set it greater than 20000 ms.
+
+This add-on has a script that lets you toggle the delayed descriptions status.  
+You can assign a command or gesture in speech category in the  NVDA input gestures dialog.

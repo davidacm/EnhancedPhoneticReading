@@ -6,6 +6,8 @@
 #globalPlugins/delayedCharacterDescriptions.py
 
 import characterProcessing, config, controlTypes, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
+from globalCommands import SCRCAT_SPEECH
+
 addonHandler.initTranslation()
 
 characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
@@ -83,9 +85,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
 
 	def handleConfigProfileSwitch(self):
-		self.switch(config.conf['delayedCharacterDescriptions']['enabled'])
+		self.toggle(config.conf['delayedCharacterDescriptions']['enabled'])
 
-	def switch(self, status):
+	def toggle(self, status):
 		if status:
 			speech.speakTextInfo = speakTextInfo
 			speech.speak = speak
@@ -97,8 +99,17 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			speech.speakSpelling = origSpeakSpelling
 			speech.cancelSpeech = origCancelSpeech
 
+	def script_toggleDelayedDescriptions(self, gesture):
+		config.conf['delayedCharacterDescriptions']['enabled'] = not config.conf['delayedCharacterDescriptions']['enabled']
+		self.toggle(config.conf['delayedCharacterDescriptions']['enabled'])
+		# Translators: message spoken if the user enables or disables delayed character descriptions.
+		speech.speakMessage(_('Delayed descriptions %s') % (_('on') if config.conf['delayedCharacterDescriptions']['enabled'] else _('off')))
+	# Translators: message presented in input mode.
+	script_toggleDelayedDescriptions.__doc__ = _("Toggles delayed character descriptions on or off")
+	script_toggleDelayedDescriptions.category = SCRCAT_SPEECH
+
 	def terminate(self):
 		super(GlobalPlugin, self).terminate()
-		self.switch(False)
+		self.toggle(False)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(DelayedCharactersPanel)
 		config.post_configProfileSwitch.unregister(self.handleConfigProfileSwitch)
