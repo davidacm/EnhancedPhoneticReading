@@ -1,7 +1,8 @@
-#Delayed character descriptions NVDA Add-on #
+# Delayed character descriptions NVDA Add-on #
 This add-on speaks the character description for the last read character after n miliseconds when the character was read by character review commands, E.G. left and right arrow keys, left, current or right character review commands, ETC.  
 In general, any character sent with textInfos.UNIT_CHARACTER argument to speech.speakTextInfo will activate a delayed character description.  
-All characters that don't have a description available in the current language (locale characterDescriptions.dic) will be ignored. Valid for auto language switching also. E.G. if you read the character "4" and the current language is spanish, you won't get a delayed description.
+This add-on consider the auto language switching also. So if the last read character captured by this add-on was spoken in another language of your current default language, and auto language switching is on, the description will be read in the detected language.
+All characters that don't have a description available for the specified language (locale characterDescriptions.dic) will be ignored. E.G. if you read the character "4" and the current default or detected language is spanish, you won't get a delayed description because spanish  doesn't have a description for that symbol.
 
 Copyright (C) 2019 David CM <dhf360@gmail.com>
 
