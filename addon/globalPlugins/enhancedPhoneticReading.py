@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
-# Delayed character descriptions: This add-on speaks the character description for the last read character after n miliseconds.
+# Enhanced phonetic reading: This add-on add some features to phonetic reading.
 # Copyright (C) 2019 David CM
 # Author: David CM <dhf360@gmail.com>
-# Released under GPL 3
-#globalPlugins/delayedCharacterDescriptions.py
+# Released under GPL 2.0
+#globalPlugins/enhancedPhoneticReading.py
 
 import characterProcessing, config, controlTypes, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
 from globalCommands import SCRCAT_SPEECH
@@ -12,10 +12,10 @@ addonHandler.initTranslation()
 
 characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
 confspec = {
-	"enabled": "boolean(default=True)",
+	"delayedDescriptions": "boolean(default=True)",
 	"delay": "float(default=1)"
 }
-config.conf.spec["delayedCharacterDescriptions"] = confspec
+config.conf.spec["enhancedPhoneticReading"] = confspec
 
 #saves the original speak function. We need it to cancel the timer if another speech sequence is received.
 origSpeak = speech.speak
@@ -39,13 +39,16 @@ def cancelSpeech():
 
 #saves the original speakTextInfo function
 origSpeakTextInfo = speech.speakTextInfo
+
+instantDescriptions = False
 # alternate function to speakTextInfo. We determine here if a delayed description is needed base on textInfos.UNIT_CHARACTER.
 def speakTextInfo(*args, **kwargs):
 	global characterDescriptionTimer
 	info = args[0]
+	if instantDescriptions and kwargs.get('unit') == textInfos.UNIT_CHARACTER: return speech.spellTextInfo(info, True)
 	tmp = origSpeakTextInfo(*args, **kwargs)
-	if kwargs.get('unit') == textInfos.UNIT_CHARACTER:
-		characterDescriptionTimer = threading.Timer(config.conf['delayedCharacterDescriptions']['delay'], speakDescription, [info.text, info.getTextWithFields({})])
+	if config.conf['enhancedPhoneticReading']['delayedDescriptions'] and kwargs.get('unit') == textInfos.UNIT_CHARACTER:
+		characterDescriptionTimer = threading.Timer(config.conf['enhancedPhoneticReading']['delay'], speakDescription, [info.text, info.getTextWithFields({})])
 		characterDescriptionTimer.start()
 	return tmp
 
@@ -59,57 +62,53 @@ def speakDescription(text, fields):
 		elif isinstance(field,textInfos.FieldCommand) and field.command=="formatChange":
 			curLanguage=field.field.get('language', curLanguage)
 
-class DelayedCharactersPanel(gui.SettingsPanel):
-	# Translators: This is the label for the delayed character   descriptions settings category in NVDA Settings screen.
-	title = _("Delayed character descriptions")
+class EnhancedPhoneticReadingPanel(gui.SettingsPanel):
+	# Translators: This is the label for the Enhanced phonetic reading settings category in NVDA Settings screen.
+	title = _("Enhanced phonetic reading")
 
 	def makeSettings(self, settingsSizer):
 		sHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 		# Translators: label for a checkbox option in the settings panel.
-		self.enabled = sHelper.addItem(wx.CheckBox(self, label=_("&Enable delayed descriptions for characters")))
-		self.enabled.SetValue(config.conf['delayedCharacterDescriptions']['enabled'])
+		self.delayedDescriptions = sHelper.addItem(wx.CheckBox(self, label=_("&Enable delayed descriptions for characters")))
+		self.delayedDescriptions.SetValue(config.conf['enhancedPhoneticReading']['delayedDescriptions'])
 		# Translators: label for a edit field option in the settings panel.
-		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=200, max=5000, initial=config.conf['delayedCharacterDescriptions']['delay']*1000)
+		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=200, max=5000, initial=config.conf['enhancedPhoneticReading']['delay']*1000)
 
 	def onSave(self):
-		config.conf['delayedCharacterDescriptions']['enabled'] = self.enabled.GetValue()
-		config.conf['delayedCharacterDescriptions']['delay'] = float(self.delay.GetValue())/1000.0
-		config.post_configProfileSwitch.notify()
-
+		config.conf['enhancedPhoneticReading']['delayedDescriptions'] = self.delayedDescriptions.GetValue()
+		config.conf['enhancedPhoneticReading']['delay'] = float(self.delay.GetValue())/1000.0
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
-		self.handleConfigProfileSwitch()
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(DelayedCharactersPanel)
-		config.post_configProfileSwitch.register(self.handleConfigProfileSwitch)
-
-	def handleConfigProfileSwitch(self):
-		self.toggle(config.conf['delayedCharacterDescriptions']['enabled'])
-
-	def toggle(self, status):
-		if status:
-			speech.speakTextInfo = speakTextInfo
-			speech.speak = speak
-			speech.speakSpelling = speakSpelling
-			speech.cancelSpeech = cancelSpeech
-		else:
-			speech.speakTextInfo = origSpeakTextInfo
-			speech.speak = origSpeak
-			speech.speakSpelling = origSpeakSpelling
-			speech.cancelSpeech = origCancelSpeech
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(EnhancedPhoneticReadingPanel)
+		speech.speakTextInfo = speakTextInfo
+		speech.speak = speak
+		speech.speakSpelling = speakSpelling
+		speech.cancelSpeech = cancelSpeech
 
 	def script_toggleDelayedDescriptions(self, gesture):
-		config.conf['delayedCharacterDescriptions']['enabled'] = not config.conf['delayedCharacterDescriptions']['enabled']
-		self.toggle(config.conf['delayedCharacterDescriptions']['enabled'])
+		config.conf['enhancedPhoneticReading']['delayedDescriptions'] = not config.conf['enhancedPhoneticReading']['delayedDescriptions']
 		# Translators: message spoken if the user enables or disables delayed character descriptions.
-		speech.speakMessage(_('Delayed descriptions %s') % (_('on') if config.conf['delayedCharacterDescriptions']['enabled'] else _('off')))
-	# Translators: message presented in input mode.
+		speech.speakMessage(_('Delayed descriptions %s') % (_('on') if config.conf['enhancedPhoneticReading']['delayedDescriptions'] else _('off')))
+	# Translators: input help message for a delayed character descriptions command.
 	script_toggleDelayedDescriptions.__doc__ = _("Toggles delayed character descriptions on or off")
 	script_toggleDelayedDescriptions.category = SCRCAT_SPEECH
 
+	def script_toggleInstantDescriptions(self, gesture):
+		global instantDescriptions
+		instantDescriptions = not instantDescriptions
+		# Translators: message spoken if the user enables or disables instant character descriptions.
+		speech.speakMessage(_('instant character descriptions %s') % (_('on') if instantDescriptions else _('off')))
+	# Translators: input help message for a Enhanced phonetic reading command.
+	script_toggleInstantDescriptions.__doc__ = _("Toggles instant character descriptions on or off")
+	script_toggleInstantDescriptions.category = SCRCAT_SPEECH
+	script_toggleInstantDescriptions.gestures =["kb(laptop):nvda+control+enter", "kb:nvda+control+numpad2"]
+
 	def terminate(self):
 		super(GlobalPlugin, self).terminate()
-		self.toggle(False)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(DelayedCharactersPanel)
-		config.post_configProfileSwitch.unregister(self.handleConfigProfileSwitch)
+		speech.speakTextInfo = origSpeakTextInfo
+		speech.speak = origSpeak
+		speech.speakSpelling = origSpeakSpelling
+		speech.cancelSpeech = origCancelSpeech
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(EnhancedPhoneticReadingPanel)

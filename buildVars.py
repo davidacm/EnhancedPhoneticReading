@@ -11,19 +11,21 @@ addon_info = {
 	# for previously unpublished addons, please follow the community guidelines at:
 	# https://bitbucket.org/nvdaaddonteam/todo/raw/master/guideLines.txt
 	# add-on Name, internal for nvda
-	"addon_name" : "delayedCharacterDescriptions",
+	"addon_name" : "EnhancedPhoneticReading",
 	# Add-on summary, usually the user visible name of the addon.
 	# Translators: Summary for this add-on to be shown on installation and add-on information.
-	"addon_summary" : _("Delayed character descriptions"),
+	"addon_summary" : _("Enhanced Phonetic Reading"),
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-	"addon_description" : _("""This add-on speaks the character description for the last read character after n miliseconds when the character was read by character review commands, E.G. left and right arrow keys, left, current or right character review commands, ETC."""),
+	"addon_description" : _("""This add-on add some features to phonetic reading as the following:
+	announce the character description for the last read character after n milliseconds when the character was read by character review commands, E.G. left and right arrow keys, left, current or right character review commands, ETC.
+	Read the character description instead of the current character. This feature must be enabled or disabled manually and will be deactivated when NVDA is closed."""),
 	# version
-	"addon_version" : "0.4a1",
+	"addon_version" : "0.5a1",
 	# Author(s)
 	"addon_author" : u"David CM <dhf360@gmail.com>",
 	# URL for the add-on documentation support
-	"addon_url" : "https://github.com/david-acm/delayedCharacterDescriptions",
+	"addon_url" : "https://github.com/david-acm/EnhancedPhoneticReading",
 	# Documentation file name
 	"addon_docFileName" : "readme.html",
 	# Minimum NVDA version supported (e.g. "2018.3.0")
@@ -31,14 +33,14 @@ addon_info = {
 	# Last NVDA version supported/tested (e.g. "2018.4.0", ideally more recent than minimum version)
 	"addon_lastTestedNVDAVersion" : "2019.3.0",
 	# Add-on update channel (default is stable or None)
-	"addon_updateChannel" : None,
+	"addon_updateChannel": "dev",
 }
 
 from os import path
 
 # Define the python files that are the sources of your add-on.
 # You can use glob expressions here, they will be expanded.
-pythonSources = [path.join("addon", "globalPlugins", "delayedCharacterDescriptions.py")]
+pythonSources = [path.join("addon", "globalPlugins", "enhancedPhoneticReading.py")]
 
 # Files that contain strings for translation. Usually your python sources
 i18nSources = pythonSources + ["buildVars.py"]
