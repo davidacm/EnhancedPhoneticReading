@@ -21,7 +21,7 @@ addon_info = {
 	announce the character description for the last read character after n milliseconds when the character was read by character review commands, E.G. left and right arrow keys, left, current or right character review commands, ETC.
 	Read the character description instead of the current character. This feature must be enabled or disabled manually and will be deactivated when NVDA is closed."""),
 	# version
-	"addon_version" : "0.5a1",
+	"addon_version" : "0.5a2",
 	# Author(s)
 	"addon_author" : u"David CM <dhf360@gmail.com>",
 	# URL for the add-on documentation support

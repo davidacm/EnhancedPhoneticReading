@@ -60,7 +60,7 @@ def speakDescription(text, fields):
 		if isinstance(field, six.string_types) and characterProcessing.getCharacterDescription(curLanguage, field.lower()):
 			speakSpelling(field,curLanguage,useCharacterDescriptions=True)
 		elif isinstance(field,textInfos.FieldCommand) and field.command=="formatChange":
-			curLanguage=field.field.get('language', curLanguage)
+			curLanguage= field.field.get('language', curLanguage) or curLanguage
 
 class EnhancedPhoneticReadingPanel(gui.SettingsPanel):
 	# Translators: This is the label for the Enhanced phonetic reading settings category in NVDA Settings screen.
