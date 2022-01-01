@@ -10,32 +10,38 @@ from globalCommands import SCRCAT_SPEECH
 
 addonHandler.initTranslation()
 
-characterDescriptionTimer = threading.Timer(0.3, zip) # fake timer because this can't be None.
+characterDescriptionTimer = None
 confspec = {
 	"delayedDescriptions": "boolean(default=True)",
-	"delay": "float(default=1)"
+	"delay": "integer(default=1000)"
 }
 config.conf.spec["enhancedPhoneticReading"] = confspec
+
+def cancelTimer():
+	global characterDescriptionTimer
+	if characterDescriptionTimer  and characterDescriptionTimer.IsRunning():
+		characterDescriptionTimer.Stop()
+		characterDescriptionTimer = None
 
 #saves the original speak function. We need it to cancel the timer if another speech sequence is received.
 origSpeak = speech.speak
 # alternate function to speak.
 def speak(*args, **kwargs):
 	origSpeak(*args, **kwargs)
-	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
+	cancelTimer()
 
 #saves the speakSpelling original  function. We need it to cancel the timer if another speech sequence is received.
 origSpeakSpelling= speech.speakSpelling
 # alternate function to speakSpelling.
 def speakSpelling(*args, **kwargs):
 	origSpeakSpelling(*args, **kwargs)
-	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
+	cancelTimer()
 
 #saves the cancelSpeech original  function. We need it to cancel the timer if the user send a stop speech command.
 origCancelSpeech = speech.cancelSpeech
 def cancelSpeech():
 	origCancelSpeech()
-	if characterDescriptionTimer.isAlive(): characterDescriptionTimer.cancel()
+	cancelTimer()
 
 #saves the original speakTextInfo function
 origSpeakTextInfo = speech.speakTextInfo
@@ -48,8 +54,7 @@ def speakTextInfo(*args, **kwargs):
 	if instantDescriptions and kwargs.get('unit') == textInfos.UNIT_CHARACTER: return speech.spellTextInfo(info, True)
 	tmp = origSpeakTextInfo(*args, **kwargs)
 	if config.conf['enhancedPhoneticReading']['delayedDescriptions'] and kwargs.get('unit') == textInfos.UNIT_CHARACTER:
-		characterDescriptionTimer = threading.Timer(config.conf['enhancedPhoneticReading']['delay'], speakDescription, [info.text, info.getTextWithFields({})])
-		characterDescriptionTimer.start()
+		characterDescriptionTimer = wx.CallLater(config.conf['enhancedPhoneticReading']['delay'], speakDescription, info.text, info.getTextWithFields({}))
 	return tmp
 
 def speakDescription(text, fields):
@@ -72,11 +77,11 @@ class EnhancedPhoneticReadingPanel(gui.SettingsPanel):
 		self.delayedDescriptions = sHelper.addItem(wx.CheckBox(self, label=_("&Enable delayed descriptions for characters")))
 		self.delayedDescriptions.SetValue(config.conf['enhancedPhoneticReading']['delayedDescriptions'])
 		# Translators: label for a edit field option in the settings panel.
-		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=200, max=5000, initial=config.conf['enhancedPhoneticReading']['delay']*1000)
+		self.delay = sHelper.addLabeledControl(_("&Delay to announce  character descriptions (in ms)"), gui.nvdaControls.SelectOnFocusSpinCtrl, min=200, max=5000, initial=config.conf['enhancedPhoneticReading']['delay'])
 
 	def onSave(self):
 		config.conf['enhancedPhoneticReading']['delayedDescriptions'] = self.delayedDescriptions.GetValue()
-		config.conf['enhancedPhoneticReading']['delay'] = float(self.delay.GetValue())/1000.0
+		config.conf['enhancedPhoneticReading']['delay'] = int(self.delay.GetValue())
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
