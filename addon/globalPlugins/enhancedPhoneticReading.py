@@ -87,6 +87,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super(globalPluginHandler.GlobalPlugin, self).__init__()
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(EnhancedPhoneticReadingPanel)
+		self.validateConfig()
 		speech.speakTextInfo = speakTextInfo
 		speech.speak = speak
 		speech.speakSpelling = speakSpelling
@@ -117,3 +118,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		speech.speakSpelling = origSpeakSpelling
 		speech.cancelSpeech = origCancelSpeech
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(EnhancedPhoneticReadingPanel)
+
+	def validateConfig(self):
+		try:
+			config.conf['enhancedPhoneticReading']['delay']
+		except:
+			config.conf['enhancedPhoneticReading']['delay'] = 1000
+
+	def handleConfigProfileSwitch(self):
+		self.validateConfig()
