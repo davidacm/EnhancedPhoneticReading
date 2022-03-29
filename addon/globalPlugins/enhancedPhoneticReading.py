@@ -5,7 +5,7 @@
 # Released under GPL 2.0
 #globalPlugins/enhancedPhoneticReading.py
 
-import characterProcessing, config, controlTypes, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
+import characterProcessing, config, controlTypes, core, globalPluginHandler, gui, addonHandler, six, speech, textInfos, threading, wx
 from globalCommands import SCRCAT_SPEECH
 
 addonHandler.initTranslation()
@@ -43,9 +43,20 @@ def cancelSpeech():
 	origCancelSpeech()
 	cancelTimer()
 
+class _FakeTextInfo():
+	"""
+	this class is used to preserve the information of the old object that contain the text. Its useful to use with delayed descriptions.
+	"""
+
+	def __init__(self, origTextInfo: textInfos.TextInfo):
+		self.text = origTextInfo.text
+		self.fields = origTextInfo.getTextWithFields({})
+
+	def getTextWithFields(self, _ = None):
+		return self.fields
+
 #saves the original speakTextInfo function
 origSpeakTextInfo = speech.speakTextInfo
-
 instantDescriptions = False
 # alternate function to speakTextInfo. We determine here if a delayed description is needed base on textInfos.UNIT_CHARACTER.
 def speakTextInfo(*args, **kwargs):
@@ -54,18 +65,22 @@ def speakTextInfo(*args, **kwargs):
 	if instantDescriptions and kwargs.get('unit') == textInfos.UNIT_CHARACTER: return speech.spellTextInfo(info, True)
 	tmp = origSpeakTextInfo(*args, **kwargs)
 	if config.conf['enhancedPhoneticReading']['delayedDescriptions'] and kwargs.get('unit') == textInfos.UNIT_CHARACTER:
-		characterDescriptionTimer = wx.CallLater(config.conf['enhancedPhoneticReading']['delay'], speakDescription, info.text, info.getTextWithFields({}))
+		characterDescriptionTimer = core.callLater(config.conf['enhancedPhoneticReading']['delay'], speakDelayedDescription, _FakeTextInfo(info))
 	return tmp
 
-def speakDescription(text, fields):
-	curLanguage=speech.getCurrentLanguage()
-	if not config.conf['speech']['autoLanguageSwitching'] and characterProcessing.getCharacterDescription(curLanguage, text.lower()):
-		return speakSpelling(text, curLanguage, useCharacterDescriptions=True)
-	for field in fields:
-		if isinstance(field, six.string_types) and characterProcessing.getCharacterDescription(curLanguage, field.lower()):
-			speakSpelling(field,curLanguage,useCharacterDescriptions=True)
-		elif isinstance(field,textInfos.FieldCommand) and field.command=="formatChange":
-			curLanguage= field.field.get('language', curLanguage) or curLanguage
+def speakDelayedDescription(info: _FakeTextInfo):
+	"""
+	this function is used to announce the delayed descriptions, we can't call spellTextInfo directly because we need to check if the description is available first.
+	"""
+	if info.text.strip() == "": return
+	curLang = speech.getCurrentLanguage()
+	if config.conf['speech']['autoLanguageSwitching']:
+		for k in info.fields:
+			if isinstance(k, textInfos.FieldCommand) and k.command == "formatChange":
+				curLang = k.field.get('language', curLang)
+	_, description = speech.getCharDescListFromText(info.text, locale=curLang)[0]
+	if description:
+		speech.spellTextInfo(info, useCharacterDescriptions=True)
 
 class EnhancedPhoneticReadingPanel(gui.SettingsPanel):
 	# Translators: This is the label for the Enhanced phonetic reading settings category in NVDA Settings screen.

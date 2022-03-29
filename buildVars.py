@@ -31,9 +31,9 @@ addon_info = {
 	# Minimum NVDA version supported (e.g. "2018.3.0")
 	"addon_minimumNVDAVersion" : "2018.3.0",
 	# Last NVDA version supported/tested (e.g. "2018.4.0", ideally more recent than minimum version)
-	"addon_lastTestedNVDAVersion" : "2021.3.1",
+	"addon_lastTestedNVDAVersion" : "2022.1.1",
 	# Add-on update channel (default is stable or None)
-	"addon_updateChannel": "dev",
+	"addon_updateChannel": "stable",
 }
 
 from os import path
