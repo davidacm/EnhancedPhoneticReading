@@ -41,6 +41,28 @@ This package is distributed under the terms of the GNU General Public License, v
 
 You can assign a command or gesture in speech category in the  NVDA input gestures dialog.
 
+## Contributing to translation.
+
+In order to make your work easier, I have left a 
+[translation template in the master branch.](https://raw.githubusercontent.com/davidacm/EnhancedPhoneticReading/master/EnhancedPhoneticReading.pot)
+If you want to translate this add-on to another language and you don't want to open a github account or install python and other tools needed for the translation, do the following steps:
+
+1. Use
+[this template](https://raw.githubusercontent.com/davidacm/EnhancedPhoneticReading/master/EnhancedPhoneticReading.pot),
+as a base for the target language.
+2. Download
+["poedit"](https://poedit.net/),
+this software will help you manage the translation strings.
+3. If you want to translate the documentation too, you can use the
+[English documentation at this link.](https://raw.githubusercontent.com/davidacm/EnhancedPhoneticReading/master/readme.md)
+4. Once you finished the translation, you can send me it to: "dhf360@gmail.com".
+
+You won't need to compile the source files. I'll do it when releasing a new add-on version. I will mention your name in the respective commit. If you don't wish to be mentioned, let me in the e-mail.
+
+Note: make sure you have used the latest translation strings template.
+
+This is an alternative method. If you want, you always can go by the usual way. Fork this repo, update the translation for your language, and send me a PR. But this way just will add more complexity for you.
+
 ## contributions, reports and donations
 
 If you like my project or this software is useful for you in your daily life and you would like to contribute in some way, you can donate via the following methods:
