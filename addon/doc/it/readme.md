@@ -7,7 +7,7 @@ Questo pacchetto è distribuito secondo i termini della GNU General Public Licen
 
 ## Download.
 	L'ultima versione è disponibile per il
-[download a questo link](https://davidacm.github.io/getlatest/gh/davidacm/EnhancedPhoneticReading)
+[download a questo link](https://davidacm.github.io/getlatest/gh/davidacm/EnhancedPhoneticReading/?index=1)
 
 ## Funzionalità.
 
