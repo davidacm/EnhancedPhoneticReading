@@ -7,4 +7,5 @@ addon/doc/en/
 *.py[co]
 *.nvda-addon
 .sconsign.dblite
-*.zip
+*.code-workspace
+*.json
