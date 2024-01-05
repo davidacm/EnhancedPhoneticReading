@@ -43,6 +43,7 @@ def cancelSpeech():
 	origCancelSpeech()
 	cancelTimer()
 
+
 class _FakeTextInfo():
 	"""
 	this class is used to preserve the information of the old object that contain the text. Its useful to use with delayed descriptions.
@@ -82,7 +83,7 @@ def speakDelayedDescription(info: _FakeTextInfo):
 	if description:
 		speech.spellTextInfo(info, useCharacterDescriptions=True)
 
-class EnhancedPhoneticReadingPanel(gui.SettingsPanel):
+class EnhancedPhoneticReadingPanel(gui.settingsDialogs.SettingsPanel):
 	# Translators: This is the label for the Enhanced phonetic reading settings category in NVDA Settings screen.
 	title = _("Enhanced phonetic reading")
 

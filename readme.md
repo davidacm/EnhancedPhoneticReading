@@ -1,5 +1,5 @@
 # Enhanced phonetic reading NVDA Add-on #
-This add-on add some features to phonetic reading like delayed character descriptions and instant character descriptions.
+This add-on add some features to phonetic reading like delayed character descriptions and instant character descriptions. Those are enhancements for the native feature implemented in NVDA.
 
 Copyright (C) 2022 - 2023 David CM <dhf360@gmail.com>
 
@@ -7,7 +7,7 @@ This package is distributed under the terms of the GNU General Public License, v
 
 ## Download.
 	The latest release is available to
-[download in this link](https://davidacm.github.io/getlatest/gh/davidacm/EnhancedPhoneticReading/?index=1)
+[download in this link](https://davidacm.github.io/getlatest/gh/davidacm/EnhancedPhoneticReading/)
 
 ## Features.
 
